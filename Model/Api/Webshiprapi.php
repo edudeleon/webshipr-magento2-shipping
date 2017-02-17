@@ -54,7 +54,7 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @date   2017-01-23
      */
     private function _logApiCalls(){
-        return true;
+        return false;
     }
 
     /**
