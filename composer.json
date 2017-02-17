@@ -1,0 +1,16 @@
+{
+    "name": "webshipr/magento2-shipping",
+    "description": "Webshipr - Magento 2 Shipping Module",
+    "type": "magento2-module",
+    "version": "2.0.0",
+    "license": [
+        "OSL-3.0",
+        "AFL-3.0"
+    ],
+    "autoload": {
+        "files": [ "registration.php" ],
+        "psr-4": {
+            "Webshipr\\Shipping\\": ""
+        }
+    }
+}

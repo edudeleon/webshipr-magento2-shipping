@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2017 webshipr.com
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <carriers>
+            <webshipr>
+                <active>1</active>
+                <sallowspecific>0</sallowspecific>
+                <model>Webshipr\Shipping\Model\Carrier\Webshipr</model>
+                <title>Webshipr</title>
+                <droppoint_limit>5</droppoint_limit>
+                <weight_unit>1</weight_unit>
+                <order_closing>1</order_closing>
+            </webshipr>
+        </carriers>
+    </default>
+</config>

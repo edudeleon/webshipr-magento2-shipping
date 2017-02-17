@@ -1,0 +1,95 @@
+<div style="margin-top:30px;">
+    <?php /** Init Vars **/?>
+    <script>
+    var webshipr_create_order_url = "<?php echo $this->getUrl('webshipr/order/create') ?>";
+    var webshipr_update_order_url = "<?php echo $this->getUrl('webshipr/order/update') ?>";
+    </script>
+    <input type="hidden" name="magento_order_id" id="magento_order_id" value="<?php echo $block->getOrderId()?>"/>
+    <?php 
+
+    $webshipr_order         = $block->getWebshiprOrder();
+    $webshipr_order_status  = !empty($webshipr_order['status']) ? $webshipr_order['status'] : '';
+
+    ?>
+
+    <div class="admin__page-section-content">
+        <div class="admin__page-section-item order-webshipr-status">
+            <div class="admin__page-section-item-title">
+                <span class="title" style="border-bottom: 1px solid #CCCCCC; padding-bottom: 2px;">
+                    <?php echo __('Order Status in Webshipr') ?>
+                </span>
+            </div>
+
+            <div class="admin__page-section-item-content">
+
+                <div class="admin__field">
+                    <label for="webshipr_status" class="admin__field-label"><?php echo __('Status') ?></label>
+                    <span id="webshipr_status">
+                        <?php echo $webshipr_order_status ? __(ucfirst($webshipr_order_status)) : __('Not transfered to Webshipr'); ?>
+                    </span>
+                    <div class="order_errors" style="background-color: #f1f1f1; margin-top:10px; width: 390px;">
+                    <?php if($webshipr_order_status == 'error_processing'){
+                        //Get processing errors
+                        if(!empty($webshipr_order['shipment_errors'])){
+                            foreach ($webshipr_order['shipment_errors'] as $value) { 
+                                echo $value['error_message'].'</br>';
+                            }
+                        }
+                    }?>
+                    </div>
+            	</div>
+
+            	<div class="admin__field">
+                    <label for="webshipr_shipping_rate" class="admin__field-label"><?php echo __('Shipping Rate') ?></label>
+                    <div class="admin__field-control">
+                        <select name="webshipr_shipping_rate" id="webshipr_shipping_rate" class="admin__control-select">
+                            <?php echo $block->getShippingRatesDropdownOptions(); ?>
+                        </select>
+                    </div>
+            	</div>
+
+                <?php 
+                //Getting droppoint data
+                $droppoint_block = $block->getOrderDroppoint();
+                if($droppoint_block){
+                ?>
+            	<div class="admin__field" id="webshipr_droppoint_block">
+                    <label for="webshipr_droppoint_content" class="admin__field-label"><?php echo __('Droppoint') ?></label>
+                    <div id="webshipr_droppoint_content">
+                    	<?php echo $droppoint_block?>
+                    </div>
+            	</div>
+                <?php } ?>
+
+                <?php 
+                    // Display Shipping deatail (Check how to optimize....)
+                    echo $block->getWebshiprShippingDetails();
+                ?>
+
+                <!-- Update Order button -->
+                <?php if(($webshipr_order_status != 'dispatched') AND $webshipr_order_status) { ?>
+            	<div class="admin__field">
+            		<button title="<?php echo __('Update and send') ?>" class="action-secondary" type="button" onClick="updateWebshiprOrder('true');">
+    					<span><?php echo __('Update and send') ?></span>
+    				</button>
+            	</div>
+                <?php } ?>
+
+                <!-- Create Order Buttons -->
+                <?php if(!$webshipr_order_status){ ?>
+                    <div class="admin__field">
+                        <button title="<?php echo __('Transfer and generate label') ?>" class="action-secondary" type="button" onClick="createWebshiprOrder('true');">
+                            <span><?php echo __('Transfer and generate label') ?></span>
+                        </button>
+                        <button style="margin-top:10px;" title="<?php echo __('Transfer to Webshipr') ?>" class="action-secondary" type="button" onClick="createWebshiprOrder('false');">
+                            <span><?php echo __('Transfer to Webshipr') ?></span>
+                        </button>
+                    </div>
+                <?php } ?>
+
+                <div id="webshipr-api-results" style="margin-top:20px; width: 390px;"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
