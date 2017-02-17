@@ -95,6 +95,9 @@ class CreateWebshiprOrderAdminObserver implements ObserverInterface
                       $error_msg = $webshipr_result['msg']. " (Order #".$order->getIncrementId().")";
                       $this->_logger->info($error_msg);
                       $this->_messageManager->addWarning($error_msg);
+                  } else {
+                    //Add information about transaction in order history
+                    $order->addStatusHistoryComment(__('Order was successfully created in Webshipr on auto transfer mode. Shipping method: '). $order->getShippingDescription())->save();
                   }
               }
 

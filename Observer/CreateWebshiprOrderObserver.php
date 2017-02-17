@@ -77,7 +77,7 @@ class CreateWebshiprOrderObserver implements ObserverInterface
                 }
             }
             
-            //Check if order match status selected in the backend (create order in Webshipr if there is a match)
+            //Check if order matches status selected in the backend (create order in Webshipr if there is a match)
             if(in_array($order_status, $trigger_statuses_array)) {
                 //Getting auto process flag 
                 $process_order = $this->_webshiprHelper->processOnAutoTransfer();
@@ -85,9 +85,12 @@ class CreateWebshiprOrderObserver implements ObserverInterface
                 //Create order via API
                 $webshipr_result = $this->_webshiprHelper->createWebshiprOrder($order_id, null, $process_order, $dropppoint_data);
 
-                //Check if order was created in Webshipr
+                //Log error if order was not created in Webshipr
                 if(empty($webshipr_result['success'])){
                     $this->_logger->info($webshipr_result['msg']. " (Order #".$order->getIncrementId().")");
+                } else {
+                    //Add information about transaction in order history
+                    $order->addStatusHistoryComment(__('Order was successfully created in Webshipr during checkout process. Shipping method: '). $order->getShippingDescription())->save();
                 }
             }
 
@@ -96,6 +99,12 @@ class CreateWebshiprOrderObserver implements ObserverInterface
               $order->setWebshiprDroppointInfo(json_encode($dropppoint_data));
               $order->save();
             }
+
+            //Log error when droppoint is not saved
+            if($this->_webshiprHelper->isDroppoint($shipping_method) && empty($dropppoint_data)){
+                $this->_logger->info("Droppoint not saved for Order #".$order->getIncrementId().". Shipping method code: ".$shipping_method);
+            }
+
         }
       }
     }

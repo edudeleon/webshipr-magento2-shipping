@@ -52,6 +52,9 @@ class Create extends \Magento\Backend\App\Action{
         //Validate Success action
         if(!empty($result['success'])){
             $this->messageManager->addSuccess( __('Order was successfully created in Webshipr'));
+
+            //Add information about transaction in order history
+            $order->addStatusHistoryComment(__('Order was successfully created in Webshipr. Shipping method: '). "Webshipr - ".$shipping_rate_label)->save();
         } 
 
         $this->getResponse()->clearHeaders()->setHeader('Content-type','application/json', true);
