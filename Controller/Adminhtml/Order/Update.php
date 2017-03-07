@@ -39,10 +39,9 @@ class Update extends \Magento\Backend\App\Action{
             $droppoint = json_decode($droppoint_info, true);
         }
 
+        //Check if shipping rate is going to be changed / Set droppoint to empty when true
         $shipping_method    = $order->getShippingMethod();
         $shipping_rate_id   = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
-
-        //Check if shipping rate is going to be changed / Set droppoint to empty when true
         if($shipping_rate_id  != $request->getParam('shipping_rate_id')){
              $order->setShippingDescription("Webshipr - ".$shipping_rate_label);
              $order->setWebshiprDroppointInfo('');

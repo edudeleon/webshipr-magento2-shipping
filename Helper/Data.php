@@ -335,10 +335,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @author edudeleon
      * @date   2017-01-19
      */
-    private function _getOrderWebshiprFormat($magento_order_id, $shipping_rate_id=null, $process_order=false, $droppoint=array()){
+    private function _getOrderWebshiprFormat($magento_order_id, $shipping_rate_id=null, $process_order=false, $droppoint=array(), $orderObject=null){
         // Loading Magento order
-        $orderModel = $this->_orderFactory->create();
-        $order      = $orderModel->load($magento_order_id);
+        if($orderObject){
+            $order = $orderObject;
+        } else {
+            $orderModel = $this->_orderFactory->create();
+            $order      = $orderModel->load($magento_order_id);
+        }
 
         //Preparing order data
         $magento_order_number   = $order->getIncrementId();
@@ -533,9 +537,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @author edudeleon
      * @date   2017-01-17
      */
-    public function createWebshiprOrder($magento_order_id, $shipping_rate_id=null, $process_order=false, $droppoint=array()){
+    public function createWebshiprOrder($magento_order_id, $shipping_rate_id=null, $process_order=false, $droppoint=array(), $orderObject=null){
         //Format Magento order into Webshipper Order
-        $webshipr_order_data = $this->_getOrderWebshiprFormat($magento_order_id, $shipping_rate_id, $process_order, $droppoint);
+        $webshipr_order_data = $this->_getOrderWebshiprFormat($magento_order_id, $shipping_rate_id, $process_order, $droppoint, $orderObject);
 
         try {
 
