@@ -145,7 +145,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Format shipping code code to store the shippin method in Magento
+     * Format shipping code to store the shipping method in Magento
      * Format: "Webshipr carrrier ID" + "_" + "Webshipr shipping rate ID" (e.g. 3934_9631)
      * If droppoint selected, droppoint ID is added to the end (e.g. 3934_9631_3947)
      * @param  [type]     $webshiprShippingRate
@@ -439,7 +439,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         
         //Prepare Order Items
-        foreach ($order->getAllItems() as $item) {
+        foreach ($order->getAllVisibleItems() as $item) {
+            
             //Loading product data (Not the best solution - a better solution is to save/load this data in/from order item detail..)
             $product = $this->_productFactory->create()->load($item->getProductId());
             

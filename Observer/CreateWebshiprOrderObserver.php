@@ -55,7 +55,7 @@ class CreateWebshiprOrderObserver implements ObserverInterface
         $checkout_flag = $this->_checkoutSession->getWebshiprCheckout();
         // $this->_checkoutSession->setWebshiprCheckout(null);
 
-        $this->_logger->info("[Webshipr] After saving order #".$order->getIncrementId(). " CheckoutFlag: ".$checkout_flag);
+        // $this->_logger->info("[Webshipr] After saving order #".$order->getIncrementId(). " CheckoutFlag: ".$checkout_flag);
 
         //Check if module is enabled
         if($this->_webshiprHelper->isEnabled()){

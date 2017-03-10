@@ -40,7 +40,7 @@ class SetWebshiprCheckoutFlagObserver implements ObserverInterface
             return;          
         }
 
-        $this->_logger->info("[Webshipr] After placing order #".$order->getIncrementId());
+        // $this->_logger->info("[Webshipr] After placing order #".$order->getIncrementId());
 
         //Check if module is enabled
         if($this->_webshiprHelper->isEnabled()){
