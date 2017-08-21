@@ -60,9 +60,13 @@ class SetWebshiprCheckoutFlagObserver implements ObserverInterface
                     $shipping_rate_id = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
                     $zip_code         = $order->getShippingAddress()->getPostcode();
                     $country          = $order->getShippingAddress()->getCountryId();
+                    $address          = $order->getShippingAddress()->getStreet();
 
+                    $address_line       = explode(PHP_EOL, $address);
+                    $address_line1      = !empty($address_line[0]) ? $address_line[0] : $address;
+        
                     //Getting droppoint data
-                    $dropppoint_result = $this->_webshiprHelper->getDroppointById($droppoint_id, $shipping_rate_id, $zip_code, $country);
+                    $dropppoint_result = $this->_webshiprHelper->getDroppointById($droppoint_id, $shipping_rate_id, $zip_code, $country, $address_line1);
                     if($dropppoint_result['success']){
                       $dropppoint_data = $dropppoint_result['droppoint'];
                     }

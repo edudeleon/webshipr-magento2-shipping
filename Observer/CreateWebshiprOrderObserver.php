@@ -76,11 +76,19 @@ class CreateWebshiprOrderObserver implements ObserverInterface
             if(!empty($droppoint_info)){
                 $dropppoint_data = json_decode($droppoint_info, true);
             }
+
+            //Force auto transfer when payment method is "Check / Money Order"
+            $always_auto_tranfer = false;
+            if($order->getPayment()->getMethod() == "checkmo" && $checkout_flag) {
+                if($this->_webshiprHelper->autoProcessMoneyOrders()) {
+                    $always_auto_tranfer = true;
+                }
+            }
                 
             //Check if order matches status selected in the backend (create order in Webshipr if there is a match)
-            if(in_array($order_status, $trigger_statuses_array)) {
+            if(in_array($order_status, $trigger_statuses_array) || $always_auto_tranfer) {
 
-                //Check if order already exists in Webshiper (extra validation - Admin Panel)
+                //Check if order already exists in Webshiper (extra validation - only in Admin Panel)
                 if(!$checkout_flag){
                     $webshiprOrder = $this->_webshiprHelper->getWebshiprOrder($order_id);
                     if(!empty($webshiprOrder)){

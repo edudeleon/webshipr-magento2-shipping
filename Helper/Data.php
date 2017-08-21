@@ -25,14 +25,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Config paths for using throughout the code
      */
-    const CONFIG_PATH_ENABLED                   = 'carriers/webshipr/active';
-    const CONFIG_PATH_TOKEN                     = 'carriers/webshipr/token';
-    const CONFIG_PATH_STATUSES                  = 'carriers/webshipr/statuses';
-    const CONFIG_PATH_AUTO_TRANSFER             = 'carriers/webshipr/auto_transfer';
-    const CONFIG_PATH_DROPPOINT_LIMIT           = 'carriers/webshipr/droppoint_limit';
-    const CONFIG_PATH_WEIGHT_UNIT               = 'carriers/webshipr/weight_unit';
-    const CONFIG_PATH_ORDER_CLOSING             = 'carriers/webshipr/order_closing';
-    const CONFIG_PATH_CUSTOMER_NOTIFICATIONS    = 'carriers/webshipr/customer_notifications';
+    const CONFIG_PATH_ENABLED                       = 'carriers/webshipr/active';
+    const CONFIG_PATH_TOKEN                         = 'carriers/webshipr/token';
+    const CONFIG_PATH_STATUSES                      = 'carriers/webshipr/statuses';
+    const CONFIG_PATH_AUTO_TRANSFER                 = 'carriers/webshipr/auto_transfer';
+    const CONFIG_PATH_AUTO_TRANSFER_MONEY_ORDERS    = 'carriers/webshipr/auto_transfer_money_orders';
+    const CONFIG_PATH_DROPPOINT_LIMIT               = 'carriers/webshipr/droppoint_limit';
+    const CONFIG_PATH_WEIGHT_UNIT                   = 'carriers/webshipr/weight_unit';
+    const CONFIG_PATH_ORDER_CLOSING                 = 'carriers/webshipr/order_closing';
+    const CONFIG_PATH_CUSTOMER_NOTIFICATIONS        = 'carriers/webshipr/customer_notifications';
 
 
     /**
@@ -83,6 +84,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function processOnAutoTransfer(){
         $config_value = $this->scopeConfig->getValue(
             self::CONFIG_PATH_AUTO_TRANSFER,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+
+        return $config_value ? true : false;
+    }
+
+    /**
+     * Check if always auto process money orders
+     * @return [type]
+     * @author edudeleon
+     * @date   2017-08-18
+     */
+    public function autoProcessMoneyOrders(){
+        $config_value = $this->scopeConfig->getValue(
+            self::CONFIG_PATH_AUTO_TRANSFER_MONEY_ORDERS,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
 
@@ -203,14 +219,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param  [type]     $shipping_rate_id
      * @param  [type]     $zip_code
      * @param  [type]     $country
+     * @param  [type]     $address
      * @return [type]
      * @author edudeleon
      * @date   2017-01-22
      */
-    public function getDroppointById($droppoint_id, $shipping_rate_id, $zip_code, $country){
+    public function getDroppointById($droppoint_id, $shipping_rate_id, $zip_code, $country, $address = null){
         try {   
             //Get droppoints from Webshipr
-            $droppoints = $this->_webshiprApi->getDroppoints($shipping_rate_id, $zip_code, $country);
+            $droppoints = $this->_webshiprApi->getDroppoints($shipping_rate_id, $zip_code, $country, $address);
 
             if(!empty($droppoints['status'])){
                 if($droppoints['status'] == 'success'){

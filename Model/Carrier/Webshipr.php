@@ -139,7 +139,7 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
         $address_line2      = !empty($address_line[1]) ? $address_line[1] : '';
         
         $recipientData = array(
-            'address_1'       => $address_line1,
+            'address_1'       => $address_line1,                //null for logged in customers (magento bug)
             'address_2'       => $address_line2,                                              
             'zip'             => $request->getDestPostcode(),
             'city'            => $request->getDestCity(),       //null for logged in customers (magento bug)
