@@ -12,7 +12,6 @@ use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\Result;
 use Magento\Shipping\Model\Simplexml\Element;
-use Magento\Ups\Helper\Config;
 use Magento\Framework\Xml\Security;
  
  
@@ -24,7 +23,6 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
     protected $_baseCurrencyRate;
     protected $_localeFormat;
     protected $_logger;
-    protected $configHelper;
     protected $_errors = [];
      
     /**
@@ -50,7 +48,6 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
      * @param  \Magento\Sales\Model\OrderFactory                           $orderFactory
      * @param  \Magento\Sales\Api\ShipmentRepositoryInterface              $shipmentRepository
      * @param  \Magento\Shipping\Model\Order\TrackFactory                  $orderTrackFactory
-     * @param  Config                                                      $configHelper
      * @param  array                                                       $data
      * @author edudeleon
      * @date   2017-01-30
@@ -77,11 +74,9 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Api\ShipmentRepositoryInterface $shipmentRepository,
         \Magento\Shipping\Model\Order\TrackFactory $orderTrackFactory,
-        Config $configHelper,
         array $data = []
     ) {
         $this->_localeFormat        = $localeFormat;
-        $this->configHelper         = $configHelper;
         $this->_webshiprHelper      = $webshiprHelperData;
         $this->_shippingData        = $shippingData;
         $this->_orderFactory        = $orderFactory;
