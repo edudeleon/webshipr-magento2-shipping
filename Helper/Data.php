@@ -25,14 +25,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Config paths for using throughout the code
      */
-    const CONFIG_PATH_ENABLED                   = 'carriers/webshipr/active';
-    const CONFIG_PATH_TOKEN                     = 'carriers/webshipr/token';
-    const CONFIG_PATH_STATUSES                  = 'carriers/webshipr/statuses';
-    const CONFIG_PATH_AUTO_TRANSFER             = 'carriers/webshipr/auto_transfer';
-    const CONFIG_PATH_DROPPOINT_LIMIT           = 'carriers/webshipr/droppoint_limit';
-    const CONFIG_PATH_WEIGHT_UNIT               = 'carriers/webshipr/weight_unit';
-    const CONFIG_PATH_ORDER_CLOSING             = 'carriers/webshipr/order_closing';
-    const CONFIG_PATH_CUSTOMER_NOTIFICATIONS    = 'carriers/webshipr/customer_notifications';
+    const CONFIG_PATH_ENABLED                       = 'carriers/webshipr/active';
+    const CONFIG_PATH_TOKEN                         = 'carriers/webshipr/token';
+    const CONFIG_PATH_STATUSES                      = 'carriers/webshipr/statuses';
+    const CONFIG_PATH_AUTO_TRANSFER                 = 'carriers/webshipr/auto_transfer';
+    const CONFIG_PATH_AUTO_TRANSFER_MONEY_ORDERS    = 'carriers/webshipr/auto_transfer_money_orders';
+    const CONFIG_PATH_DROPPOINT_LIMIT               = 'carriers/webshipr/droppoint_limit';
+    const CONFIG_PATH_WEIGHT_UNIT                   = 'carriers/webshipr/weight_unit';
+    const CONFIG_PATH_ORDER_CLOSING                 = 'carriers/webshipr/order_closing';
+    const CONFIG_PATH_CUSTOMER_NOTIFICATIONS        = 'carriers/webshipr/customer_notifications';
 
 
     /**
@@ -83,6 +84,21 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function processOnAutoTransfer(){
         $config_value = $this->scopeConfig->getValue(
             self::CONFIG_PATH_AUTO_TRANSFER,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
+
+        return $config_value ? true : false;
+    }
+
+    /**
+     * Check if always auto process money orders
+     * @return [type]
+     * @author edudeleon
+     * @date   2017-08-18
+     */
+    public function autoProcessMoneyOrders(){
+        $config_value = $this->scopeConfig->getValue(
+            self::CONFIG_PATH_AUTO_TRANSFER_MONEY_ORDERS,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
 
@@ -145,7 +161,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Format shipping code code to store the shippin method in Magento
+     * Format shipping code to store the shipping method in Magento
      * Format: "Webshipr carrrier ID" + "_" + "Webshipr shipping rate ID" (e.g. 3934_9631)
      * If droppoint selected, droppoint ID is added to the end (e.g. 3934_9631_3947)
      * @param  [type]     $webshiprShippingRate
@@ -203,14 +219,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param  [type]     $shipping_rate_id
      * @param  [type]     $zip_code
      * @param  [type]     $country
+     * @param  [type]     $address
      * @return [type]
      * @author edudeleon
      * @date   2017-01-22
      */
-    public function getDroppointById($droppoint_id, $shipping_rate_id, $zip_code, $country){
+    public function getDroppointById($droppoint_id, $shipping_rate_id, $zip_code, $country, $address = null){
         try {   
             //Get droppoints from Webshipr
-            $droppoints = $this->_webshiprApi->getDroppoints($shipping_rate_id, $zip_code, $country);
+            $droppoints = $this->_webshiprApi->getDroppoints($shipping_rate_id, $zip_code, $country, $address);
 
             if(!empty($droppoints['status'])){
                 if($droppoints['status'] == 'success'){
@@ -335,10 +352,14 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @author edudeleon
      * @date   2017-01-19
      */
-    private function _getOrderWebshiprFormat($magento_order_id, $shipping_rate_id=null, $process_order=false, $droppoint=array()){
+    private function _getOrderWebshiprFormat($magento_order_id, $shipping_rate_id=null, $process_order=false, $droppoint=array(), $orderObject=null){
         // Loading Magento order
-        $orderModel = $this->_orderFactory->create();
-        $order      = $orderModel->load($magento_order_id);
+        if($orderObject){
+            $order = $orderObject;
+        } else {
+            $orderModel = $this->_orderFactory->create();
+            $order      = $orderModel->load($magento_order_id);
+        }
 
         //Preparing order data
         $magento_order_number   = $order->getIncrementId();
@@ -435,7 +456,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         }
         
         //Prepare Order Items
-        foreach ($order->getAllItems() as $item) {
+        foreach ($order->getAllVisibleItems() as $item) {
+            
             //Loading product data (Not the best solution - a better solution is to save/load this data in/from order item detail..)
             $product = $this->_productFactory->create()->load($item->getProductId());
             
@@ -533,9 +555,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @author edudeleon
      * @date   2017-01-17
      */
-    public function createWebshiprOrder($magento_order_id, $shipping_rate_id=null, $process_order=false, $droppoint=array()){
+    public function createWebshiprOrder($magento_order_id, $shipping_rate_id=null, $process_order=false, $droppoint=array(), $orderObject=null){
         //Format Magento order into Webshipper Order
-        $webshipr_order_data = $this->_getOrderWebshiprFormat($magento_order_id, $shipping_rate_id, $process_order, $droppoint);
+        $webshipr_order_data = $this->_getOrderWebshiprFormat($magento_order_id, $shipping_rate_id, $process_order, $droppoint, $orderObject);
 
         try {
 

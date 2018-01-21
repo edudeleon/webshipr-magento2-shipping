@@ -36,6 +36,16 @@ class Create extends \Magento\Backend\App\Action{
         if(!empty($droppoint_info)){
             $droppoint = json_decode($droppoint_info, true);
         }
+
+        //Check if shipping rate is going to be changed / Set droppoint to empty when true
+        $shipping_method    = $order->getShippingMethod();
+        $shipping_rate_id   = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
+        if($shipping_rate_id  != $request->getParam('shipping_rate_id')){
+             $order->setShippingDescription("Webshipr - ".$shipping_rate_label);
+             $order->setWebshiprDroppointInfo('');
+             $order->save();
+             $droppoint = array();
+        }
         
         //Create order via API
         $result = $this->_webshiprHelper->createWebshiprOrder(
@@ -45,13 +55,12 @@ class Create extends \Magento\Backend\App\Action{
             $droppoint
         );
 
-        //Update shipping description
-        $order->setShippingDescription("Webshipr - ".$shipping_rate_label);
-        $order->save();
-
         //Validate Success action
         if(!empty($result['success'])){
             $this->messageManager->addSuccess( __('Order was successfully created in Webshipr'));
+
+            //Add information about transaction in order history
+            $order->addStatusHistoryComment(__('Order was successfully created in Webshipr from Admin Panel. Shipping method: '). $order->getShippingDescription())->save();
         } 
 
         $this->getResponse()->clearHeaders()->setHeader('Content-type','application/json', true);

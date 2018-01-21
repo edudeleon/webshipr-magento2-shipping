@@ -93,7 +93,7 @@ class Close extends \Magento\Framework\App\Action\Action
         }
 
         $data = json_decode($order_detail, true);
-        if(empty($data['order_id']) || empty($data['carrier_name']) || empty($data['tracking_code']) || empty($data['tracking_url'])){
+        if(empty($data['order_id']) || empty($data['carrier_name'])){
             $this->_return_http_response(__('"order_detail" not valid'), false);   
         }
 
@@ -151,14 +151,16 @@ class Close extends \Magento\Framework\App\Action\Action
         try {
 
             //Including Tracking code
-            $track = $this->_objectManager->create(
-                    'Magento\Sales\Model\Order\Shipment\Track')
-                ->setTrackNumber($data['tracking_code'])
-                ->setWebshiprTrackingUrl($data['tracking_url'])
-                ->setCarrierCode(\Webshipr\Shipping\Model\Config::SHIPPING_METHOD_CODE)
-                ->setTitle($data['carrier_name']
-            );
-            $shipment->addTrack($track);
+            if(!empty($data['tracking_code']) && !empty($data['tracking_url'])) {
+                $track = $this->_objectManager->create(
+                        'Magento\Sales\Model\Order\Shipment\Track')
+                    ->setTrackNumber($data['tracking_code'])
+                    ->setWebshiprTrackingUrl($data['tracking_url'])
+                    ->setCarrierCode(\Webshipr\Shipping\Model\Config::SHIPPING_METHOD_CODE)
+                    ->setTitle($data['carrier_name']
+                );
+                $shipment->addTrack($track);
+            }
 
             // Save created shipment and order
             $shipment->save();

@@ -184,16 +184,13 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @author edudeleon
      * @date   2017-01-13
      */
-    public function getDroppoints($rate_id, $zip_code, $country, $address=null){
+    public function getDroppoints($rate_id, $zip_code, $country, $address = null){
 
         $data = array(
             'rate_id'   =>  $rate_id,
             'zip'       =>  $zip_code,
             'country'   =>  $country,
         );
-
-        //Remove this when Magento 2 issue "#3789" will be fixed (Fix will come in Magento 2.1.5)
-        $address = false;
 
         //If address is present, get droppoint by address and zipcode
         if(!empty($address)){

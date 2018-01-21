@@ -5,7 +5,10 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-    <event name="checkout_onepage_controller_success_action">
+	<event name="sales_order_place_after">
+        <observer name="webshipr_order_success_place" instance="Webshipr\Shipping\Observer\SetWebshiprCheckoutFlagObserver" />
+    </event>
+    <event name="sales_order_save_after">
         <observer name="webshipr_order_success" instance="Webshipr\Shipping\Observer\CreateWebshiprOrderObserver" />
     </event>
 </config>
