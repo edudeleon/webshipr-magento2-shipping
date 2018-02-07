@@ -94,5 +94,4 @@ class InstallData implements InstallDataInterface
             ]
         );
     }
-
 }
