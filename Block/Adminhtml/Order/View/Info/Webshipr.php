@@ -14,6 +14,11 @@ class Webshipr extends \Magento\Backend\Block\Template
     protected $registry;
 
     /**
+     * @var \Webshipr\Shipping\Api\OrderManagementInterface
+     */
+    protected $_orderManagement;
+
+    /**
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param array $data
@@ -23,11 +28,13 @@ class Webshipr extends \Magento\Backend\Block\Template
         \Magento\Framework\Registry $registry,
         \Webshipr\Shipping\Helper\Data $webshiprHelperData,
         \Magento\Directory\Model\CountryFactory $countryFactory,
+        \Webshipr\Shipping\Api\OrderManagementInterface $orderManagement,
         array $data = []
     ) {
         $this->registry             = $registry;
         $this->_webshiprHelper      = $webshiprHelperData;
         $this->_countryFactory      = $countryFactory;
+        $this->_orderManagement     = $orderManagement;
         parent::__construct($context, $data);
     }
 
@@ -192,8 +199,7 @@ class Webshipr extends \Magento\Backend\Block\Template
 
             //If not, get shipping rate ID from Magento
             } else {
-                $shipping_method    = $this->getOrder()->getShippingMethod();
-                $shipping_rate_id   = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
+                $shipping_rate_id   = $this->_orderManagement->getWebshiprShippingRateId($this->getOrder());
             }
         }
 

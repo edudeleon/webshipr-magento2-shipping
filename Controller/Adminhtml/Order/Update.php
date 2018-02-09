@@ -13,13 +13,27 @@ class Update extends \Magento\Backend\App\Action
      */
     protected $_webshiprHelper;
 
+    /**
+     * @var \Webshipr\Shipping\Model\WebshiprManagement
+     */
+    protected $_webshiprManagement;
+
+    /**
+     * @var \Webshipr\Shipping\Api\OrderManagementInterface
+     */
+    protected $_orderManagement;
+
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         \Webshipr\Shipping\Helper\Data $webshiprHelperData,
-        \Magento\Sales\Model\OrderFactory $orderFactory
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Webshipr\Shipping\Model\WebshiprManagement $webshiprManagement,
+        \Webshipr\Shipping\Api\OrderManagementInterface $orderManagement
     ) {
-        $this->_webshiprHelper      = $webshiprHelperData;
-        $this->_orderFactory        = $orderFactory;
+        $this->_webshiprHelper     = $webshiprHelperData;
+        $this->_orderFactory       = $orderFactory;
+        $this->_webshiprManagement = $webshiprManagement;
+        $this->_orderManagement    = $orderManagement;
         parent::__construct($context);
     }
 
@@ -42,8 +56,7 @@ class Update extends \Magento\Backend\App\Action
         }
 
         //Check if shipping rate is going to be changed / Set droppoint to empty when true
-        $shipping_method    = $order->getShippingMethod();
-        $shipping_rate_id   = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
+        $shipping_rate_id   = $this->_orderManagement->getWebshiprShippingRateId($order);
         if ($shipping_rate_id  != $request->getParam('shipping_rate_id')) {
              $order->setShippingDescription("Webshipr - ".$shipping_rate_label);
              $order->setWebshiprDroppointInfo('');
@@ -51,7 +64,7 @@ class Update extends \Magento\Backend\App\Action
              $droppoint = [];
         }
 
-        $result = $this->_webshiprHelper->updateWebshiprOrder(
+        $result = $this->_webshiprManagement->updateWebshiprOrder(
             $magento_order_id,
             $request->getParam('shipping_rate_id'),
             $request->getParam('process_order'),
