@@ -7,30 +7,37 @@
 namespace Webshipr\Shipping\Controller\Order;
  
 use Magento\Framework\App\Action\Context;
- 
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\NoSuchEntityException;
+
 class Close extends \Magento\Framework\App\Action\Action
 {
     protected $_resultPageFactory;
+
+    /**
+     * @var \Webshipr\Shipping\Api\OrderExtRefManagementInterface
+     */
+    protected $_orderExtRefManagement;
  
     public function __construct(
         Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Convert\OrderFactory $convertOrderFactory,
         \Magento\Shipping\Model\ShipmentNotifier $shipmentNotifier,
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender,
         \Magento\Framework\DB\Transaction $transaction,
-        \Webshipr\Shipping\Helper\Data $webshiprHelperData
+        \Webshipr\Shipping\Helper\Data $webshiprHelperData,
+        \Webshipr\Shipping\Api\OrderExtRefManagementInterface $orderExtRefManagement
     ) {
         $this->_resultPageFactory       = $resultPageFactory;
-        $this->_orderFactory            = $orderFactory;
         $this->_convertOrderFactory     = $convertOrderFactory;
         $this->_shipmentNotifier        = $shipmentNotifier;
         $this->_invoiceService          = $invoiceService;
         $this->_invoiceSender           = $invoiceSender;
         $this->_transaction             = $transaction;
         $this->_webshiprHelper          = $webshiprHelperData;
+        $this->_orderExtRefManagement   = $orderExtRefManagement;
         parent::__construct($context);
     }
 
@@ -108,16 +115,19 @@ class Close extends \Magento\Framework\App\Action\Action
         }
 
         //Loading order from Magento
-        $orderModel = $this->_orderFactory->create();
         $order_id   = $data['order_id'];
-        $order      = $orderModel->load($order_id);
+        $order = null;
+        try {
+            /** @var \Magento\Sales\Model\Order $order */
+            $order = $this->_orderExtRefManagement->getEntity($order_id);
+        } catch (NoSuchEntityException $e) {
+            $this->_return_http_response(__('Order not found with given order_id/ext_ref "%1"', $order_id), false);
+        } catch (InputException $e) {
+            $this->_return_http_response(__('No order_id/ext_ref given'), false);
+        }
 
         //Get enabled notifications
         $enabled_notifications = $this->_webshiprHelper->getEnabledNotifications();
-
-        if (empty($order)) {
-            $this->_return_http_response(__('Order not found'), false);
-        }
    
         // Check if order can be invoiced and shipped
         if (!$order->canShip() or !$order->canInvoice()) {

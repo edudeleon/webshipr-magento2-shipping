@@ -13,6 +13,11 @@ class ToWebshiprOrder
     protected $_orderManagement;
 
     /**
+     * @var \Webshipr\Shipping\Api\OrderExtRefManagementInterface
+     */
+    protected $_orderExtRefManagement;
+
+    /**
      * @var \Webshipr\Shipping\Model\Order\Item\ToWebshiprItem
      */
     protected $_toWebshiprItem;
@@ -34,12 +39,14 @@ class ToWebshiprOrder
 
     public function __construct(
         \Webshipr\Shipping\Api\OrderManagementInterface $orderManagement,
+        \Webshipr\Shipping\Api\OrderExtRefManagementInterface $orderExtRefManagement,
         \Webshipr\Shipping\Model\Order\Item\ToWebshiprItem $toWebshiprItem,
         \Webshipr\Shipping\Model\Order\ToWebshiprDiscount $toWebshiprDiscount,
         \Webshipr\Shipping\Model\Order\Address\ToWebshiprAddress $toWebshiprAddress,
         \Webshipr\Shipping\Model\Order\ToWebshiprShippingFinancial $toWebshiprShippingFinancial
     ) {
         $this->_orderManagement = $orderManagement;
+        $this->_orderExtRefManagement = $orderExtRefManagement;
         $this->_toWebshiprItem  = $toWebshiprItem;
         $this->_toWebshiprDiscount = $toWebshiprDiscount;
         $this->_toWebshiprAddress = $toWebshiprAddress;
@@ -73,7 +80,7 @@ class ToWebshiprOrder
         }
 
         $webshiprOrderFormat =  [
-            'ext_ref'            => $order->getId(),
+            'ext_ref'            => $this->_orderExtRefManagement->getExtRef($order),
             'visible_ref'        => $order->getIncrementId(),
             'shipping_rate_id'   => $shippingRateId,
             'currency'           => $order->getOrderCurrencyCode(),

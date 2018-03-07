@@ -25,16 +25,26 @@ class ToWebshiprItem
     protected $_productRepository;
 
     /**
-     * @param \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
+     * @var \Webshipr\Shipping\Api\OrderItemExtRefManagementInterface
+     */
+    protected $_extRefManagement;
+
+    /**
+     * @param \Webshipr\Shipping\Helper\Data                            $webshiprHelper
+     * @param \Magento\Store\Model\StoreManagerInterface                $storeManager
+     * @param \Magento\Catalog\Api\ProductRepositoryInterface           $productRepository
+     * @param \Webshipr\Shipping\Api\OrderItemExtRefManagementInterface $extRefManagement
      */
     public function __construct(
         \Webshipr\Shipping\Helper\Data $webshiprHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository
+        \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
+        \Webshipr\Shipping\Api\OrderItemExtRefManagementInterface $extRefManagement
     ) {
         $this->_webshiprHelper = $webshiprHelper;
         $this->_storeManager = $storeManager;
         $this->_productRepository = $productRepository;
+        $this->_extRefManagement = $extRefManagement;
     }
 
     /**
@@ -66,7 +76,7 @@ class ToWebshiprItem
             'colli'               => 1,
             'tarif_number'        => $tarifNumber,
             'origin_country_code' => $originCountryCode,
-            'ext_ref'             => $item->getItemId(),
+            'ext_ref'             => $this->_extRefManagement->getExtRef($item),
             'unit_price'          => (float)$item->getPrice(),
             'tax_percent'         => (float)$item->getTaxPercent(),
         ];
