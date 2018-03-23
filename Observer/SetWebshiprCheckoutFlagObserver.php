@@ -2,7 +2,7 @@
 /**
  * Copyright © 2017 webshipr.com
  * @autor eduedeleon
- * 
+ *
  * */
 namespace Webshipr\Shipping\Observer;
 
@@ -34,27 +34,26 @@ class SetWebshiprCheckoutFlagObserver implements ObserverInterface
      * @param EventObserver $observer
      * @return void
      */
-    public function execute(EventObserver $observer){
+    public function execute(EventObserver $observer)
+    {
         $order = $observer->getEvent()->getOrder();
         if (!($order instanceof \Magento\Framework\Model\AbstractModel)) {
-            return;          
+            return;
         }
 
         // $this->_logger->info("[Webshipr] After placing order #".$order->getIncrementId());
 
         //Check if module is enabled
-        if($this->_webshiprHelper->isEnabled()){
-
+        if ($this->_webshiprHelper->isEnabled()) {
             //Set checkout flag
             $this->_checkoutSession->setWebshiprCheckout('1');
 
             //Save droppoint information in order
             $shipping_method = $order->getShippingMethod();
-            if($this->_webshiprHelper->isWebshiprMethod($shipping_method)){
-                
+            if ($this->_webshiprHelper->isWebshiprMethod($shipping_method)) {
                 //Getting droppoint data when available
-                $dropppoint_data = array();
-                if($this->_webshiprHelper->isDroppoint($shipping_method)){
+                $dropppoint_data = [];
+                if ($this->_webshiprHelper->isDroppoint($shipping_method)) {
                     //Getting shipping method information
                     $droppoint_id     = $this->_webshiprHelper->getWebshiprDroppointId($shipping_method);
                     $shipping_rate_id = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
@@ -67,22 +66,21 @@ class SetWebshiprCheckoutFlagObserver implements ObserverInterface
         
                     //Getting droppoint data
                     $dropppoint_result = $this->_webshiprHelper->getDroppointById($droppoint_id, $shipping_rate_id, $zip_code, $country, $address_line1);
-                    if($dropppoint_result['success']){
-                      $dropppoint_data = $dropppoint_result['droppoint'];
+                    if ($dropppoint_result['success']) {
+                        $dropppoint_data = $dropppoint_result['droppoint'];
                     }
                 }
 
                  //Save droppoint to order
-                if(!empty($dropppoint_data)) {
-                  $order->setWebshiprDroppointInfo(json_encode($dropppoint_data));
+                if (!empty($dropppoint_data)) {
+                    $order->setWebshiprDroppointInfo(json_encode($dropppoint_data));
                 }
 
                 //Log error if droppoint is not saved
-                if($this->_webshiprHelper->isDroppoint($shipping_method) && empty($dropppoint_data)) {
+                if ($this->_webshiprHelper->isDroppoint($shipping_method) && empty($dropppoint_data)) {
                     $this->_logger->info("[Webshipr] Droppoint not saved for Order #".$order->getIncrementId().". Shipping method code: ".$shipping_method);
                 }
             }
         }
     }
-    
 }

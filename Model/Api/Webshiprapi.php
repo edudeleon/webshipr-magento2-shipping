@@ -15,9 +15,9 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
     protected $_logger;
 
     public function __construct(
-            \Psr\Log\LoggerInterface $logger,
-            \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface
-        ){
+        \Psr\Log\LoggerInterface $logger,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfigInterface
+    ) {
         $this->_logger          = $logger;
         $this->_scopeConfig     = $scopeConfigInterface;
     }
@@ -40,7 +40,8 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @author edudeleon
      * @date   2017-01-23
      */
-    private function _getToken(){
+    private function _getToken()
+    {
         return $this->_scopeConfig->getValue(
             'carriers/webshipr/token',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
@@ -53,7 +54,8 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @author edudeleon
      * @date   2017-01-23
      */
-    private function _logApiCalls(){
+    private function _logApiCalls()
+    {
         return false;
     }
 
@@ -79,38 +81,35 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
         $client->setMethod($method);
 
         //Preparing headers
-        $headers = array(
+        $headers = [
             'Authorization' => 'Token token="'.$token.'"',
             'Content-Type'  => 'application/json'
-        );
+        ];
 
         $client->setHeaders($headers);
 
-        if($method == 'POST' || $method == "PUT" || $method == "PATCH") {
+        if ($method == 'POST' || $method == "PUT" || $method == "PATCH") {
             $client->setRawData(json_encode($data), 'application/json');
         }
 
         //Log API Request
-        if($this->_logApiCalls()){
+        if ($this->_logApiCalls()) {
             $this->_logger->info("[WEBSHIPR API REQUEST] ".
                 print_r(
-                    array(
+                    [
                        'url'     => $url,
                        'method'  => $method,
                        'headers' => $headers,
                        'data'    => json_encode($data),
-                    ),
+                    ],
                     true
-                )
-            );
+                ));
         }
 
         try {
-
             $response = $client->request();
-
-        } catch ( Zend_Http_Client_Exception $ex ) {   
-            //Logging exceptions         
+        } catch (Zend_Http_Client_Exception $ex) {
+            //Logging exceptions
             $this->_logger->info("[WEBSHIPR] ".'Call to ' . $url . ' resulted in: ' . $ex->getMessage());
             $this->_logger->info("[WEBSHIPR] ".'--Last Request: ' . $client->getLastRequest());
             $this->_logger->info("[WEBSHIPR] ".'--Last Response: ' . $client->getLastResponse());
@@ -122,7 +121,7 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
         $body = json_decode($response->getBody(), true);
 
         //Log API Response
-        if($this->_logApiCalls()){
+        if ($this->_logApiCalls()) {
             $log_msg = var_export($body, true);
             $this->_logger->info("[WEBSHIPR API RESPONSE] ".$log_msg);
         }
@@ -137,11 +136,12 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @author edudeleon
      * @date   2017-01-18
      */
-    public function getShippingRates(){
+    public function getShippingRates()
+    {
 
-        $response = $this->_call('/API/V2/shipping_rates/','GET');
+        $response = $this->_call('/API/V2/shipping_rates/', 'GET');
 
-        return $response; 
+        return $response;
     }
 
     /**
@@ -149,29 +149,30 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @param  [type]     $price            Order subtotal
      * @param  [type]     $currency         Store currency
      * @param  [type]     $weight           Total weight of the current order (sum of items weight)
-     * @param  [Array]    $recipientData    Array with recipient information. Array structure:                     
-                                                $recipientData = array( 
+     * @param  [Array]    $recipientData    Array with recipient information. Array structure:
+                                                $recipientData = array(
                                                     'address_1'     => 'Test Address 1',
                                                     'address_2'     => 'Test Address 2',
                                                     'zip'           => '8600',
                                                     'city'          => 'Silkeborg',
                                                     'country_code'  => 'DK',
-                                                    'state' 
+                                                    'state'
                                                 );
      * @author edudeleon
      * @date   2017-01-13
      */
-    public function getShippingRatesQuote($price, $currency, $weight, $recipientData){
-        $data = array(
+    public function getShippingRatesQuote($price, $currency, $weight, $recipientData)
+    {
+        $data = [
             'price'     => (float)$price,
             'currency'  => $currency,
             'weight'    => (float)$weight,
             'recipient' => $recipientData
-        );
+        ];
 
-        $response = $this->_call('/API/V2/shipping_rates/quote','POST', $data);
+        $response = $this->_call('/API/V2/shipping_rates/quote', 'POST', $data);
 
-        return $response; 
+        return $response;
     }
 
     /**
@@ -184,24 +185,23 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @author edudeleon
      * @date   2017-01-13
      */
-    public function getDroppoints($rate_id, $zip_code, $country, $address = null){
+    public function getDroppoints($rate_id, $zip_code, $country, $address = null)
+    {
 
-        $data = array(
+        $data = [
             'rate_id'   =>  $rate_id,
             'zip'       =>  $zip_code,
             'country'   =>  $country,
-        );
+        ];
 
         //If address is present, get droppoint by address and zipcode
-        if(!empty($address)){
+        if (!empty($address)) {
             $data['address'] = $address;
 
-            $response = $this->_call('/API/V2/droppoints/by_address','POST', $data);
-
+            $response = $this->_call('/API/V2/droppoints/by_address', 'POST', $data);
         } else {
-            
             //Get droppoint by zipcode only
-            $response = $this->_call('/API/V2/droppoints/by_zip','POST', $data);
+            $response = $this->_call('/API/V2/droppoints/by_zip', 'POST', $data);
         }
 
         return $response;
@@ -214,9 +214,10 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @author edudeleon
      * @date   2017-01-23
      */
-    public function createOrder($webshipr_order_data){
+    public function createOrder($webshipr_order_data)
+    {
 
-        $response = $this->_call('/API/V2/orders','POST', $webshipr_order_data);
+        $response = $this->_call('/API/V2/orders', 'POST', $webshipr_order_data);
 
         return $response;
     }
@@ -230,9 +231,10 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @author edudeleon
      * @date   2017-01-23
      */
-    public function updateOrder($magento_order_id, $webshipr_order_data){
+    public function updateOrder($magento_order_id, $webshipr_order_data)
+    {
 
-        $response = $this->_call('/API/V2/orders/'.$magento_order_id,'PATCH', $webshipr_order_data);
+        $response = $this->_call('/API/V2/orders/'.$magento_order_id, 'PATCH', $webshipr_order_data);
 
         return $response;
     }
@@ -246,11 +248,11 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      * @author edudeleon
      * @date   2017-01-18
      */
-    public function getOrder($magento_order_id){
+    public function getOrder($magento_order_id)
+    {
 
-        $response = $this->_call('/API/V2/orders/'.$magento_order_id,'GET');
+        $response = $this->_call('/API/V2/orders/'.$magento_order_id, 'GET');
 
         return $response;
     }
-
 }

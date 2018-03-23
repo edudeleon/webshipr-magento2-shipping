@@ -13,8 +13,7 @@ use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\Result;
 use Magento\Shipping\Model\Simplexml\Element;
 use Magento\Framework\Xml\Security;
- 
- 
+
 class Webshipr extends AbstractCarrierOnline implements CarrierInterface
 {
     protected $_code = \Webshipr\Shipping\Model\Config::SHIPPING_METHOD_CODE;
@@ -102,9 +101,13 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
         );
     }
 
-    protected function _doShipmentRequest(\Magento\Framework\DataObject $request) {}
+    protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
+    {
+    }
 
-    public function getAllowedMethods(){}
+    public function getAllowedMethods()
+    {
+    }
      
     /**
      * Main method used quote shipping rates
@@ -114,7 +117,7 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
      * @date   2017-01-30
      */
     public function collectRates(RateRequest $request)
-    {   
+    {
         if (!$this->getConfigFlag('active')) {
             return false;
         }
@@ -133,14 +136,14 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
         $address_line1      = !empty($address_line[0]) ? $address_line[0] : $street_address;
         $address_line2      = !empty($address_line[1]) ? $address_line[1] : '';
         
-        $recipientData = array(
+        $recipientData = [
             'address_1'       => $address_line1,                //null for logged in customers (magento bug)
-            'address_2'       => $address_line2,                                              
+            'address_2'       => $address_line2,
             'zip'             => $request->getDestPostcode(),
             'city'            => $request->getDestCity(),       //null for logged in customers (magento bug)
             'country_code'    => $request->getDestCountryId(),
             'state'           => $request->getDestRegionCode(), //null for logged in customers (magento bug)
-        );
+        ];
         
         //Getting shipping options by method
         $shippingOptions =  $this->_webshiprHelper->getShippingRatesQuote($order_subtotal, $weight, $recipientData);
@@ -152,14 +155,14 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
             $method->setCarrierTitle($this->getConfigData('title'));
      
             $method->setMethod($value['method_code']);
-            $method->setMethodTitle($value['name']);     
+            $method->setMethodTitle($value['name']);
         
             $amount =  $value['price'];
             $method->setPrice($amount);
             $method->setCost($amount);
      
             $result->append($method);
-        }    
+        }
  
         return $result;
     }
@@ -190,15 +193,15 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
      * @author edudeleon
      * @date   2017-01-30
      */
-    private function _getWebshiprTracking($trackings){
+    private function _getWebshiprTracking($trackings)
+    {
         $result = $this->_trackFactory->create();
         foreach ($trackings as $tracking) {
-
             //Getting tracking URL
             $tracking_data = $this->_orderTrackFactory->create()->getCollection()
                             ->addFieldToFilter('track_number', $tracking)
                             ->addFieldToFilter('carrier_code', $this->_code)
-                            ->getLastItem(); 
+                            ->getLastItem();
 
             $tracking_url = $tracking_data->getWebshiprTrackingUrl();
 
@@ -224,7 +227,8 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
      * @author edudeleon
      * @date   2017-01-30
      */
-    public function proccessAdditionalValidation(\Magento\Framework\DataObject $request) {
+    public function proccessAdditionalValidation(\Magento\Framework\DataObject $request)
+    {
         return true;
     }
 }

@@ -1,8 +1,8 @@
 <?php
  /**
- * Copyright © 2017 webshipr.com
- * @autor eduedeleon 
- */
+  * Copyright © 2017 webshipr.com
+  * @autor eduedeleon
+  */
 
 namespace Webshipr\Shipping\Controller\Order;
  
@@ -13,7 +13,7 @@ class Close extends \Magento\Framework\App\Action\Action
     protected $_resultPageFactory;
  
     public function __construct(
-        Context $context, 
+        Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Convert\OrderFactory $convertOrderFactory,
@@ -22,7 +22,7 @@ class Close extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender,
         \Magento\Framework\DB\Transaction $transaction,
         \Webshipr\Shipping\Helper\Data $webshiprHelperData
-    ){
+    ) {
         $this->_resultPageFactory       = $resultPageFactory;
         $this->_orderFactory            = $orderFactory;
         $this->_convertOrderFactory     = $convertOrderFactory;
@@ -35,29 +35,29 @@ class Close extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * Return endpoint call response 
+     * Return endpoint call response
      * @param  [type]     $msg
      * @param  boolean    $success
      * @return [type]
      * @author edudeleon
      * @date   2017-01-25
      */
-    private function _return_http_response($msg, $success=true, $auth=true){
+    private function _return_http_response($msg, $success = true, $auth = true)
+    {
 
-        if($success){
-            $result = array(
+        if ($success) {
+            $result = [
                 'success' => true,
                 'msg'     => $msg,
-            );
-
+            ];
         } else {
-            $result = array(
+            $result = [
                 'success' => false,
                 'msg'     => $msg,
-            );
+            ];
         }
 
-        if(!$auth){
+        if (!$auth) {
             http_response_code(403);
         }
 
@@ -68,18 +68,18 @@ class Close extends \Magento\Framework\App\Action\Action
  
     /**
      * Endpoint called by Webshipr to close and order in Magento
-     * Method loads order prepare it to have a status completed. 
-     * Orders in Magento are considered closed/completed when they have a shipment 
+     * Method loads order prepare it to have a status completed.
+     * Orders in Magento are considered closed/completed when they have a shipment
      * and invoice events associated to them.
      * @return [type]
      * @author edudeleon
      * @date   2017-01-21
      */
     public function execute()
-    {   
+    {
         //Check if module is enabled
-        if(!$this->_webshiprHelper->isEnabled()){
-            $this->_return_http_response(__('Webshpr extension is not enabled or token has not been configured'), false);   
+        if (!$this->_webshiprHelper->isEnabled()) {
+            $this->_return_http_response(__('Webshpr extension is not enabled or token has not been configured'), false);
         }
 
         //Authenticate request
@@ -88,23 +88,23 @@ class Close extends \Magento\Framework\App\Action\Action
 
         //Get data
         $order_detail = $request->getParam('order_detail');
-        if(empty($order_detail)){
+        if (empty($order_detail)) {
             $this->_return_http_response(__('"order_detail" not set'), false);
         }
 
         $data = json_decode($order_detail, true);
-        if(empty($data['order_id']) || empty($data['carrier_name'])){
-            $this->_return_http_response(__('"order_detail" not valid'), false);   
+        if (empty($data['order_id']) || empty($data['carrier_name'])) {
+            $this->_return_http_response(__('"order_detail" not valid'), false);
         }
 
         //Authenticate request (by Token)
-        if($this->_webshiprHelper->getToken() != $token){
+        if ($this->_webshiprHelper->getToken() != $token) {
             $this->_return_http_response(__('Token not valid'), false, false);
         }
 
         //Check if orders can be closed by Webshipr
-        if(!$this->_webshiprHelper->orderClosingEnabled()){
-            $this->_return_http_response(__('Orders cannot be closed by Webshipr. Please enable this feature in the extension settings in your Magento Admin Panel.'), false);   
+        if (!$this->_webshiprHelper->orderClosingEnabled()) {
+            $this->_return_http_response(__('Orders cannot be closed by Webshipr. Please enable this feature in the extension settings in your Magento Admin Panel.'), false);
         }
 
         //Loading order from Magento
@@ -115,13 +115,13 @@ class Close extends \Magento\Framework\App\Action\Action
         //Get enabled notifications
         $enabled_notifications = $this->_webshiprHelper->getEnabledNotifications();
 
-        if(empty($order)){
+        if (empty($order)) {
             $this->_return_http_response(__('Order not found'), false);
         }
    
         // Check if order can be invoiced and shipped
-        if (!$order->canShip() OR !$order->canInvoice()) { 
-            $this->_return_http_response(__("Order can't be invoiced or shipped automatically. Please close/complete the order from Magento admin panel."), false); 
+        if (!$order->canShip() or !$order->canInvoice()) {
+            $this->_return_http_response(__("Order can't be invoiced or shipped automatically. Please close/complete the order from Magento admin panel."), false);
         }
 
         // Create shipment order
@@ -129,7 +129,7 @@ class Close extends \Magento\Framework\App\Action\Action
         $shipment       = $convertOrder->toShipment($order);
 
         // Loop through order items
-        foreach ($order->getAllItems() AS $orderItem) {
+        foreach ($order->getAllItems() as $orderItem) {
             // Check if order item has qty to ship or is virtual
             if (! $orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                 continue;
@@ -149,16 +149,15 @@ class Close extends \Magento\Framework\App\Action\Action
         $shipment->getOrder()->setIsInProcess(true);
 
         try {
-
             //Including Tracking code
-            if(!empty($data['tracking_code']) && !empty($data['tracking_url'])) {
+            if (!empty($data['tracking_code']) && !empty($data['tracking_url'])) {
                 $track = $this->_objectManager->create(
-                        'Magento\Sales\Model\Order\Shipment\Track')
+                    'Magento\Sales\Model\Order\Shipment\Track'
+                )
                     ->setTrackNumber($data['tracking_code'])
                     ->setWebshiprTrackingUrl($data['tracking_url'])
                     ->setCarrierCode(\Webshipr\Shipping\Model\Config::SHIPPING_METHOD_CODE)
-                    ->setTitle($data['carrier_name']
-                );
+                    ->setTitle($data['carrier_name']);
                 $shipment->addTrack($track);
             }
 
@@ -167,17 +166,17 @@ class Close extends \Magento\Framework\App\Action\Action
             $shipment->getOrder()->save();
 
             // Notify customer about shipment
-            if(in_array('notify_shipment', $enabled_notifications)){
+            if (in_array('notify_shipment', $enabled_notifications)) {
                 $this->_shipmentNotifier->notify($shipment);
             }
 
             $shipment->save();
 
-            // Include shippment comment 
+            // Include shippment comment
             $order->addStatusHistoryComment(
-                __('Shipment order automatically generated by Webshipr. Shipment No. '). $shipment->getIncrementId())
+                __('Shipment order automatically generated by Webshipr. Shipment No. '). $shipment->getIncrementId()
+            )
             ->save();
-
         } catch (Exception $e) {
             $this->_return_http_response(__($e->getMessage()), false);
         }
@@ -201,23 +200,22 @@ class Close extends \Magento\Framework\App\Action\Action
 
         // Save the invoice to the order
         $transaction = $this->_transaction->addObject($invoice)
-                                          ->addObject($invoice->getOrder()
-        );
+                                          ->addObject($invoice->getOrder());
         $transaction->save();
 
         // Notify customer about the invoice
-        if(in_array('notify_invoice', $enabled_notifications)){
+        if (in_array('notify_invoice', $enabled_notifications)) {
             $this->_invoiceSender->send($invoice);
         }
 
-        // Include Invoice comment 
+        // Include Invoice comment
         $order->addStatusHistoryComment(
-            __('Invoice automatically generated by Webshipr. Invoice No. ').$invoice->getIncrementId())
+            __('Invoice automatically generated by Webshipr. Invoice No. ').$invoice->getIncrementId()
+        )
         // ->setIsCustomerNotified(true) // Notify email about this comment...
         ->save();
 
         //Order Shipped and Invoiced
         $this->_return_http_response(__("Order was succesfully completed/closed in Magento"));
     }
-
 }

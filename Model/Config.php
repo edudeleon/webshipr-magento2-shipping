@@ -15,5 +15,5 @@ class Config extends \Magento\Framework\Model\AbstractModel
     const SANDBOX_URL           = 'https://private-anon-b5ab0d49fe-webshiprmoduleapiversion2.apiary-mock.com';
 
     const SHIPPING_METHOD_CODE  =   'webshipr';
-    const TRACKING_CODE_URL  	=   'https://portal.webshipr.com?tracking=';
+    const TRACKING_CODE_URL     =   'https://portal.webshipr.com?tracking=';
 }

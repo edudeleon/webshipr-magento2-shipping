@@ -15,19 +15,19 @@ class Customernotification implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        return array(
-            array(
+        return [
+            [
                 'value' => 'notify_disabled',
                 'label' => __('Disable notifications'),
-            ),
-            array(
+            ],
+            [
                 'value' => 'notify_invoice',
                 'label' => __('Notify customer about Invoice'),
-            ),
-            array(
+            ],
+            [
                 'value' => 'notify_shipment',
                 'label' => __('Notify customer about Shipment'),
-            ),
-        );
+            ],
+        ];
     }
 }
