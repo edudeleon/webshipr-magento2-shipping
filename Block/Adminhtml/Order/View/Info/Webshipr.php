@@ -14,6 +14,11 @@ class Webshipr extends \Magento\Backend\Block\Template
     protected $registry;
 
     /**
+     * @var \Webshipr\Shipping\Api\OrderManagementInterface
+     */
+    protected $_orderManagement;
+
+    /**
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param array $data
@@ -23,11 +28,13 @@ class Webshipr extends \Magento\Backend\Block\Template
         \Magento\Framework\Registry $registry,
         \Webshipr\Shipping\Helper\Data $webshiprHelperData,
         \Magento\Directory\Model\CountryFactory $countryFactory,
+        \Webshipr\Shipping\Api\OrderManagementInterface $orderManagement,
         array $data = []
     ) {
-        $this->registry 			= $registry;
+        $this->registry             = $registry;
         $this->_webshiprHelper      = $webshiprHelperData;
         $this->_countryFactory      = $countryFactory;
+        $this->_orderManagement     = $orderManagement;
         parent::__construct($context, $data);
     }
 
@@ -57,8 +64,9 @@ class Webshipr extends \Magento\Backend\Block\Template
      * @author edudeleon
      * @date   2017-01-18
      */
-    public function getOrderId(){
-    	return $this->getOrder()->getId();
+    public function getOrderId()
+    {
+        return $this->getOrder()->getId();
     }
 
     /**
@@ -67,8 +75,9 @@ class Webshipr extends \Magento\Backend\Block\Template
      * @author edudeleon
      * @date   2017-01-18
      */
-    private function _getOrderNumber(){
-    	return $this->getOrder()->getIncrementId();
+    private function _getOrderNumber()
+    {
+        return $this->getOrder()->getIncrementId();
     }
 
     /**
@@ -77,9 +86,10 @@ class Webshipr extends \Magento\Backend\Block\Template
      * @author edudeleon
      * @date   2017-01-20
      */
-    public function getOrderDroppoint(){
+    public function getOrderDroppoint()
+    {
         $droppoint_info = $this->getOrder()->getWebshiprDroppointInfo();
-        if(!empty($droppoint_info)){
+        if (!empty($droppoint_info)) {
             $droppoint = json_decode($droppoint_info, true);
 
             //Getting country name
@@ -100,7 +110,8 @@ class Webshipr extends \Magento\Backend\Block\Template
      * @author edudeleon
      * @date   2017-01-20
      */
-    public function getWebshiprOrder(){
+    public function getWebshiprOrder()
+    {
         return $this->_webshiprHelper->getWebshiprOrder($this->getOrderId());
     }
 
@@ -111,25 +122,26 @@ class Webshipr extends \Magento\Backend\Block\Template
      * @author edudeleon
      * @date   2017-01-20
      */
-    public function getWebshiprShippingDetails(){
+    public function getWebshiprShippingDetails()
+    {
         // Load Webshipr order
         $webshipr_order = $this->getWebshiprOrder();
 
-        if(!empty($webshipr_order)){
-            if($webshipr_order['status'] == 'dispatched'){
+        if (!empty($webshipr_order)) {
+            if ($webshipr_order['status'] == 'dispatched') {
                 $shipping_fulfillments = '';
                 foreach ($webshipr_order['fulfillments'] as $value) {
-                    $tracking_url   = !empty($value['tracking'][0]['tracking_url']) ? $value['tracking'][0]['tracking_url'] : ''; 
-                    $tracking_code  = !empty($value['tracking'][0]['tracking_no']) ? $value['tracking'][0]['tracking_no'] : ''; 
+                    $tracking_url   = !empty($value['tracking'][0]['tracking_url']) ? $value['tracking'][0]['tracking_url'] : '';
+                    $tracking_code  = !empty($value['tracking'][0]['tracking_no']) ? $value['tracking'][0]['tracking_no'] : '';
                     $label_link     = !empty($value['label_link']) ? $value['label_link'] : '';
                     
                     $tracking_row = $tracking_url ? '<a href="'. $tracking_url .'" target="_blank">'. $tracking_code .'</a>' : __('No tracking available');
                     $label_row = $label_link ? '<a href="'. $label_link .'" target="_blank">'. __('Print label') .'</a>' : __('No label available');
 
                     $created_at = '';
-                    if(!empty($value['created_at'])){
+                    if (!empty($value['created_at'])) {
                         $time       = strtotime($value['created_at']);
-                        $created_at = date('m-d-Y H:i',$time);
+                        $created_at = date('m-d-Y H:i', $time);
                     }
 
                     $shipping_fulfillments .= '
@@ -138,7 +150,6 @@ class Webshipr extends \Magento\Backend\Block\Template
                                         <td class="data-row">'. $tracking_row .'</td>
                                         <td class="data-row">'. $label_row .'</td>
                                     </tr>';
-
                 }
 
                 $shipping_details = '
@@ -163,45 +174,43 @@ class Webshipr extends \Magento\Backend\Block\Template
             }
         }
 
-        return '';     
+        return '';
     }
 
     /**
-     * Get Webshipr shipping rates 
+     * Get Webshipr shipping rates
      * Returns a dropdown options
      * @param  [type]     $shipping_rate_id
-     * @return [type]     
+     * @return [type]
      * @author edudeleon
      * @date   2017-01-20
      */
-    public function getShippingRatesDropdownOptions($shipping_rate_id = null){
+    public function getShippingRatesDropdownOptions($shipping_rate_id = null)
+    {
         
         //Get current shipping rate ID
-        if(!$shipping_rate_id){
-
+        if (!$shipping_rate_id) {
             // Load order from Webshipr
             $webshipr_order     = $this->getWebshiprOrder();
 
             //If order exists in webshipr, use the current shipping rate in Webshipr
-            if(!empty($webshipr_order['shipping_rate_id'])){
+            if (!empty($webshipr_order['shipping_rate_id'])) {
                 $shipping_rate_id = $webshipr_order['shipping_rate_id'];
 
             //If not, get shipping rate ID from Magento
             } else {
-                $shipping_method    = $this->getOrder()->getShippingMethod();
-                $shipping_rate_id   = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
+                $shipping_rate_id   = $this->_orderManagement->getWebshiprShippingRateId($this->getOrder());
             }
         }
 
-    	// Loading shipping rates
-    	$shipping_rates = $this->_webshiprHelper->getShippingRates();
-    	$options = '';
-    	foreach ($shipping_rates as $value) {
-    		$has_droppoints = $value['has_droppoints'] ? 'true' : 'false';
+        // Loading shipping rates
+        $shipping_rates = $this->_webshiprHelper->getShippingRates();
+        $options = '';
+        foreach ($shipping_rates as $value) {
+            $has_droppoints = $value['has_droppoints'] ? 'true' : 'false';
             $selected       = ($shipping_rate_id == $value['id']) ? 'selected="selected"' : '';
-    		
             $options .= '<option value="'.$value['id'].'" has_droppoints="'. $has_droppoints .'" ' .$selected.'>'.$value['name'].'</option>';
-    	}
-    	return $options;
+        }
+        return $options;
     }
 }

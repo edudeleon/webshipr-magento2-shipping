@@ -15,15 +15,15 @@ class Weightunit implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        return array(
-            array(
+        return [
+            [
                 'value' => '1000',
                 'label' => 'Gram',
-            ),
-            array(
+            ],
+            [
                 'value' => '1',
                 'label' => 'KG',
-            ),
-        );
+            ],
+        ];
     }
 }
