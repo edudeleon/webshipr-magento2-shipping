@@ -15,16 +15,23 @@ use Magento\Framework\Event\ObserverInterface;
 class SetWebshiprCheckoutFlagObserver implements ObserverInterface
 {
     /**
+     * @var \Webshipr\Shipping\Api\OrderManagementInterface
+     */
+    protected $_orderManagement;
+
+    /**
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Webshipr\Shipping\Helper\Data $webshiprHelperData
+        \Webshipr\Shipping\Helper\Data $webshiprHelperData,
+        \Webshipr\Shipping\Api\OrderManagementInterface $orderManagement
     ) {
         $this->_logger          = $logger;
         $this->_checkoutSession = $checkoutSession;
         $this->_webshiprHelper  = $webshiprHelperData;
+        $this->_orderManagement = $orderManagement;
     }
 
     /**
@@ -36,6 +43,7 @@ class SetWebshiprCheckoutFlagObserver implements ObserverInterface
      */
     public function execute(EventObserver $observer)
     {
+        /** @var \Magento\Sales\Model\Order $order */
         $order = $observer->getEvent()->getOrder();
         if (!($order instanceof \Magento\Framework\Model\AbstractModel)) {
             return;
@@ -50,13 +58,13 @@ class SetWebshiprCheckoutFlagObserver implements ObserverInterface
 
             //Save droppoint information in order
             $shipping_method = $order->getShippingMethod();
-            if ($this->_webshiprHelper->isWebshiprMethod($shipping_method)) {
+            if ($this->_orderManagement->usesWebshiprShippingMethod($order)) {
                 //Getting droppoint data when available
                 $dropppoint_data = [];
-                if ($this->_webshiprHelper->isDroppoint($shipping_method)) {
+                if ($this->_orderManagement->usesWebshiprDropPoint($order)) {
                     //Getting shipping method information
-                    $droppoint_id     = $this->_webshiprHelper->getWebshiprDroppointId($shipping_method);
-                    $shipping_rate_id = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
+                    $droppoint_id     = $this->_orderManagement->getWebshiprDroppointId($order);
+                    $shipping_rate_id = $this->_orderManagement->getWebshiprShippingRateId($order);
                     $zip_code         = $order->getShippingAddress()->getPostcode();
                     $country          = $order->getShippingAddress()->getCountryId();
                     $address          = $order->getShippingAddress()->getStreet();
@@ -77,7 +85,7 @@ class SetWebshiprCheckoutFlagObserver implements ObserverInterface
                 }
 
                 //Log error if droppoint is not saved
-                if ($this->_webshiprHelper->isDroppoint($shipping_method) && empty($dropppoint_data)) {
+                if ($this->_orderManagement->usesWebshiprDropPoint($order) && empty($dropppoint_data)) {
                     $this->_logger->info("[Webshipr] Droppoint not saved for Order #".$order->getIncrementId().". Shipping method code: ".$shipping_method);
                 }
             }

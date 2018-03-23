@@ -7,19 +7,25 @@ namespace Webshipr\Shipping\Controller\Adminhtml\Order;
 
 class Create extends \Magento\Backend\App\Action
 {
+    /**
+     * @var \Webshipr\Shipping\Model\WebshiprManagement
+     */
+    protected $_webshiprManagement;
 
     /**
-     * @var \Magento\Framework\Json\Helper\Data
+     * @var \Webshipr\Shipping\Api\OrderManagementInterface
      */
-    protected $_webshiprHelper;
+    protected $_orderManagement;
 
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
-        \Webshipr\Shipping\Helper\Data $webshiprHelperData,
-        \Magento\Sales\Model\OrderFactory $orderFactory
+        \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Webshipr\Shipping\Model\WebshiprManagement $webshiprManagement,
+        \Webshipr\Shipping\Api\OrderManagementInterface $orderManagement
     ) {
-        $this->_webshiprHelper      = $webshiprHelperData;
-        $this->_orderFactory        = $orderFactory;
+        $this->_orderFactory       = $orderFactory;
+        $this->_webshiprManagement = $webshiprManagement;
+        $this->_orderManagement    = $orderManagement;
         parent::__construct($context);
     }
 
@@ -40,8 +46,7 @@ class Create extends \Magento\Backend\App\Action
         }
 
         //Check if shipping rate is going to be changed / Set droppoint to empty when true
-        $shipping_method    = $order->getShippingMethod();
-        $shipping_rate_id   = $this->_webshiprHelper->getWebshiprShippingRateId($shipping_method);
+        $shipping_rate_id   = $this->_orderManagement->getWebshiprShippingRateId($order);
         if ($shipping_rate_id  != $request->getParam('shipping_rate_id')) {
              $order->setShippingDescription("Webshipr - ".$shipping_rate_label);
              $order->setWebshiprDroppointInfo('');
@@ -50,7 +55,7 @@ class Create extends \Magento\Backend\App\Action
         }
         
         //Create order via API
-        $result = $this->_webshiprHelper->createWebshiprOrder(
+        $result = $this->_webshiprManagement->createWebshiprOrder(
             $magento_order_id,
             $request->getParam('shipping_rate_id'),
             $request->getParam('process_order'),

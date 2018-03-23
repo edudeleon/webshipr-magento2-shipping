@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2018 webshipr.com
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Webshipr\Shipping\Api\OrderManagementInterface" type="Webshipr\Shipping\Model\OrderManagement" />
+    <preference for="Webshipr\Shipping\Api\OrderExtRefManagementInterface" type="Webshipr\Shipping\Model\OrderExtRefManagement" />
+    <preference for="Webshipr\Shipping\Api\OrderItemExtRefManagementInterface" type="Webshipr\Shipping\Model\Order\ItemExtRefManagement" />
+</config>

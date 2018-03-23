@@ -2,10 +2,29 @@
     "name": "webshipr/magento2-shipping",
     "description": "Webshipr - Magento 2 Shipping Module",
     "type": "magento2-module",
-    "version": "2.0.6",
+    "version": "3.0.0",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
+    ],
+    "require": {
+        "php": ">=7.0.2",
+        "magento/framework": "100.* | 101.*",
+        "magento/module-backend": "100.* | 101.* | 102.*",
+        "magento/module-catalog": "100.* | 101.* | 102.*",
+        "magento/module-checkout": "100.*",
+        "magento/module-config": "100.* | 101.*",
+        "magento/module-eav": "100.* | 101.*",
+        "magento/module-quote": "100.* | 101.*",
+        "magento/module-sales": "100.* | 101.*",
+        "magento/module-shipping": "100.*",
+        "magento/module-store": "100.*"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
     ],
     "autoload": {
         "files": [ "registration.php" ],
