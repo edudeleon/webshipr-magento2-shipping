@@ -75,6 +75,7 @@ class ToWebshiprOrder
         }
 
         // Prepare Order Items
+        $orderItems = [];
         foreach ($this->getItemsForWebshiprShipment($order) as $item) {
             $orderItems[] = $this->_toWebshiprItem->convert($item);
         }

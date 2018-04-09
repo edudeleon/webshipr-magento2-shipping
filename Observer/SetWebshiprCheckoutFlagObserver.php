@@ -69,6 +69,10 @@ class SetWebshiprCheckoutFlagObserver implements ObserverInterface
                     $country          = $order->getShippingAddress()->getCountryId();
                     $address          = $order->getShippingAddress()->getStreet();
 
+                    if(is_array($address)){
+                        $address      = !empty($address[0]) ? $address[0] : 'no-address';
+                    }
+
                     $address_line       = explode(PHP_EOL, $address);
                     $address_line1      = !empty($address_line[0]) ? $address_line[0] : $address;
         

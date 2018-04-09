@@ -43,7 +43,7 @@
                     <label for="webshipr_shipping_rate" class="admin__field-label"><?php echo __('Shipping Rate') ?></label>
                     <div class="admin__field-control">
                         <select name="webshipr_shipping_rate" id="webshipr_shipping_rate" class="admin__control-select">
-                            <?php echo $block->getShippingRatesDropdownOptions(); ?>
+                            <?php echo $block->getShippingRatesDropdownOptions(null, $block->getOrder()->getStoreId()); ?>
                         </select>
                     </div>
             	</div>

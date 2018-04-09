@@ -181,12 +181,16 @@ class Webshipr extends \Magento\Backend\Block\Template
      * Get Webshipr shipping rates
      * Returns a dropdown options
      * @param  [type]     $shipping_rate_id
+     * @param  [type]     $storeId
      * @return [type]
      * @author edudeleon
      * @date   2017-01-20
      */
-    public function getShippingRatesDropdownOptions($shipping_rate_id = null)
+    public function getShippingRatesDropdownOptions($shipping_rate_id = null, $storeId = null)
     {
+        if($storeId) {
+            $_GET['storeId'] = $storeId;
+        }
         
         //Get current shipping rate ID
         if (!$shipping_rate_id) {

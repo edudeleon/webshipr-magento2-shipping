@@ -56,7 +56,10 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
      */
     private function _logApiCalls()
     {
-        return false;
+        return $this->_scopeConfig->getValue(
+            'carriers/webshipr/enable_debugging',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
     }
 
     /**
@@ -71,6 +74,58 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
     protected function _call($endpoint, $method = 'POST', $data = null)
     {
         $token = $this->_getToken();
+        $state =  \Magento\Framework\App\ObjectManager::getInstance()
+                        ->get('Magento\Framework\App\State');
+                        
+        //Get Store Token based on order information (Only when managing order in Admin Panel)
+        if($state->getAreaCode() === 'adminhtml') {
+
+            //Check if endpoint is the one used to "get/update" orders
+            $get_update_order_endpoint = strchr($endpoint, '/API/V2/orders/');
+            if($get_update_order_endpoint) {
+
+                //Getting order data
+                $magento_order_id   = str_replace('/API/V2/orders/', '', $endpoint);
+                $order              = \Magento\Framework\App\ObjectManager::getInstance()
+                                            ->create('\Magento\Sales\Model\Order')->load($magento_order_id);
+
+                //Get Token by Store ID
+                $_token = $this->_scopeConfig->getValue(
+                    'carriers/webshipr/token',
+                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                    $order->getStoreId()
+                );
+                $token = $_token ? $_token : $token;
+            
+            //Check if endpoint is the one used to "create" orders
+            } else if($endpoint == '/API/V2/orders') {
+                 
+                if(!empty($data['ext_ref'])) {
+                    
+                    //Getting order data
+                    $magento_order_id   = $data['ext_ref'];
+                    $order              = \Magento\Framework\App\ObjectManager::getInstance()
+                                                ->create('\Magento\Sales\Model\Order')->load($magento_order_id);
+
+                     //Get Token by Store ID
+                    $_token = $this->_scopeConfig->getValue(
+                        'carriers/webshipr/token',
+                        \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                        $order->getStoreId()
+                    );
+                    $token = $_token ? $_token : $token;
+                }   
+            
+            //Check if Store ID is set in GET request
+            } else if(!empty($_GET['storeId'])) {
+                $_token = $this->_scopeConfig->getValue(
+                    'carriers/webshipr/token',
+                    \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+                    $_GET['storeId']
+                );
+                $token = $_token ? $_token : $token;
+            }
+        }
 
         //Prepare URL
         $url    =  $this->_getUrl($endpoint);
@@ -94,7 +149,7 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
 
         //Log API Request
         if ($this->_logApiCalls()) {
-            $this->_logger->info("[WEBSHIPR API REQUEST] ".
+            $this->_logger->debug("[WEBSHIPR API REQUEST] ".
                 print_r(
                     [
                        'url'     => $url,
@@ -110,9 +165,9 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
             $response = $client->request();
         } catch (Zend_Http_Client_Exception $ex) {
             //Logging exceptions
-            $this->_logger->info("[WEBSHIPR] ".'Call to ' . $url . ' resulted in: ' . $ex->getMessage());
-            $this->_logger->info("[WEBSHIPR] ".'--Last Request: ' . $client->getLastRequest());
-            $this->_logger->info("[WEBSHIPR] ".'--Last Response: ' . $client->getLastResponse());
+            $this->_logger->debug("[WEBSHIPR] ".'Call to ' . $url . ' resulted in: ' . $ex->getMessage());
+            $this->_logger->debug("[WEBSHIPR] ".'--Last Request: ' . $client->getLastRequest());
+            $this->_logger->debug("[WEBSHIPR] ".'--Last Response: ' . $client->getLastResponse());
 
             return $ex->getMessage();
         }
@@ -123,7 +178,7 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
         //Log API Response
         if ($this->_logApiCalls()) {
             $log_msg = var_export($body, true);
-            $this->_logger->info("[WEBSHIPR API RESPONSE] ".$log_msg);
+            $this->_logger->debug("[WEBSHIPR API RESPONSE] ".$log_msg);
         }
 
         

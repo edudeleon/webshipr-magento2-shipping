@@ -1,4 +1,8 @@
 <?php
+/**
+ * Updating class to use "Quote Item ID" instead of "Item ID" because sometimes Item ID is not available at checkout_cart_product_add_after.
+ * Modified by edudeleon on April 8, 2018
+ * */
 
 namespace Webshipr\Shipping\Model\Order;
 
@@ -38,7 +42,7 @@ class ItemExtRefManagement implements \Webshipr\Shipping\Api\OrderItemExtRefMana
 
         $records = $this->_orderItemRepository->getList(
             $this->_searchCriteriaBuilder
-                ->addFilter(OrderItemInterface::ITEM_ID, $extRef)
+                ->addFilter(OrderItemInterface::QUOTE_ITEM_ID, $extRef)
                 ->create()
         );
 
@@ -57,11 +61,11 @@ class ItemExtRefManagement implements \Webshipr\Shipping\Api\OrderItemExtRefMana
      */
     public function getExtRef(OrderItemInterface $orderItem): string
     {
-        if ($orderItem->getItemId() === null) {
-            throw new InputException(__('Given order item do not have a item ID'));
+        if ($orderItem->getQuoteItemId() === null) {
+            throw new InputException(__('Given order item do not have a Quote Item ID'));
         }
 
-        return (string)$orderItem->getItemId();
+        return (string)$orderItem->getQuoteItemId();
     }
 
     /**
@@ -69,6 +73,6 @@ class ItemExtRefManagement implements \Webshipr\Shipping\Api\OrderItemExtRefMana
      */
     public function equality(OrderItemInterface $orderItem, string $extRef): bool
     {
-        return $orderItem->getItemId() !== null && $extRef === (string)$orderItem->getItemId();
+        return $orderItem->getQuoteItemId() !== null && $extRef === (string)$orderItem->getQuoteItemId();
     }
 }
