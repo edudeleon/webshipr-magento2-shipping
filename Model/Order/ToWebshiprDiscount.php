@@ -13,15 +13,16 @@ class ToWebshiprDiscount
      */
     public function convert(\Magento\Sales\Api\Data\OrderInterface $order): array
     {
+        $data = [];
         $discountAmount = abs($order->getDiscountAmount());
         if ($discountAmount > 0) {
-            return [
+            $data[] = [
                 'price'        => (float)$discountAmount,
                 'tax_included' => false,
                 'tax_percent'  => 0.0,
             ];
         }
 
-        return [];
+        return $data;
     }
 }

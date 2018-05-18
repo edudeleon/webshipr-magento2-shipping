@@ -44,7 +44,7 @@ class Webshiprapi extends \Magento\Framework\Model\AbstractModel
     {
         return $this->_scopeConfig->getValue(
             'carriers/webshipr/token',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE
         );
     }
 
