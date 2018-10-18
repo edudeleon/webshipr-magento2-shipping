@@ -226,9 +226,23 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
      * @return [type]
      * @author edudeleon
      * @date   2017-01-30
+     * @deprecated
      */
     public function proccessAdditionalValidation(\Magento\Framework\DataObject $request)
     {
         return true;
     }
+    
+    /**
+     * [processAdditionalValidation description]
+     * @param  \Magento\Framework\DataObject $request
+     * @return [type]
+     * @author edudeleon
+     * @date   2018-10-18
+     */
+    public function processAdditionalValidation(\Magento\Framework\DataObject $request)
+    {
+        return $this->proccessAdditionalValidation($request);
+    }
+    
 }
