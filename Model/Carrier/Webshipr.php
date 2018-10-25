@@ -158,13 +158,41 @@ class Webshipr extends AbstractCarrierOnline implements CarrierInterface
             $method->setMethodTitle($value['name']);
         
             $amount =  $value['price'];
-            $method->setPrice($amount);
-            $method->setCost($amount);
+            $method->setPrice($this->getShippingPrice($request, $amount));
+            $method->setCost($this->getShippingPrice($request, $amount));
      
             $result->append($method);
         }
  
         return $result;
+    }
+
+    private function getShippingPrice(RateRequest $request, $ratePrice)
+    {
+        $freeBoxes = 0;
+        if ($request->getAllItems()) {
+            foreach ($request->getAllItems() as $item) {
+
+                if ($item->getProduct()->isVirtual() || $item->getParentItem()) {
+                    continue;
+                }
+
+                if ($item->getHasChildren() && $item->isShipSeparately()) {
+                    $freeBoxes += $this->getFreeBoxesCountFromChildren($item);
+                } elseif ($item->getFreeShipping()) {
+                    $freeBoxes += $item->getQty();
+                }
+            }
+        }
+        $this->setFreeBoxes($freeBoxes);
+
+        $shippingPrice = $this->getFinalPriceWithHandlingFee($ratePrice);
+
+        if ($request->getFreeShipping() || ($request->getPackageQty() == $this->getFreeBoxes())) {
+            $shippingPrice = '0.00';
+        }
+
+        return $shippingPrice;
     }
 
     /**
